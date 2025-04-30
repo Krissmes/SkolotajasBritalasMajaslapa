@@ -13,7 +13,18 @@ def login_lapa():
 
 @app.route('/pievienot', methods=['POST','GET'])
 def pievienot_lapa():
-    return render_template('pievienot.html')
+    kategorijas = ['Smieklīgi', 'Izglītojoši', 'Motivējoši']  
+    
+    if request.method == "POST":
+        saite = request.form.get('saite')
+        anotacija = request.form.get('anotacija')
+        autors = request.form.get('Autors')
+
+        
+        print(f"Saite: {saite}, Anotācija: {anotacija}, Autors: {autors}")
+
+    return render_template('pievienot.html', kategorijas=kategorijas)
+
 
 
 

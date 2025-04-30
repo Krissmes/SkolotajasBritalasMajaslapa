@@ -6,21 +6,25 @@
 
 {% endblock %}
 
-{% block saturs%}
+{% block saturs %}
+<h1>Pievienot lapa</h1>
 
-<input type="url" id="saite" name="saite">
 <form method="post">
+    <input id="saitesinputs" type="url" name="saite" placeholder="https://piemers.lv" required>
+    
     <select name="kategorijas">
         {% for x in kategorijas %}
-            <option value = {{x}}> {{x}}</option>
-        {%endfor%}
+            <option value="{{ x }}">{{ x }}</option>
+        {% endfor %}
     </select>
-    <input type="submit", value="izvelies joku"> 
+    
+    <input type="text" id="anotacija" name="anotacija" required>
+    <input type="text" name="Autors" placeholder="Pievienotāja Vārds, Uzvārds" required>
+    
+    <input type="submit" value="Izvēlies joku">
 </form>
-<input type="text" id="anotacija" name="anotacija">
-<input type="submit" id="pievienot" name="pievienot">
-
 
 <p>Lūdzu strādā pievienot</p>
-
 {% endblock %}
+
+
