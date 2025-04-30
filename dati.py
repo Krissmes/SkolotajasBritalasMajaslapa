@@ -1,11 +1,66 @@
-
+import bcrypt
 import os
 import psycopg2
 import json
 import csv
 import time
+import sqlite3
 
-dsn = "dbname=mydb user=myuser password=mypass host=localhost"
+dsn = "dbname=mydb user=funnycat53 password=mypass host=localhost"
+
+def lietotaju_tabulas_izveide():
+    conn = psycopg2.connect(dsn)
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS lietotaji (
+            id SERIAL PRIMARY KEY,
+            lietotaj_vards VARCHAR(100) UNIQUE NOT NULL,
+            parole_hash TEXT NOT NULL,
+            role VARCHAR(10) NOT NULL DEFAULT 'user'
+        )
+    """)
+    conn.commit()
+    cur.close()
+    conn.close()
+
+lietotaju_tabulas_izveide()
+
+def izveidot_lietotaju(lietotaj_vards, parole, role='user'):
+    conn = psycopg2.connect(dsn)
+    cur = conn.cursor()
+    hashed = bcrypt.hashpw(parole.encode('utf-8'), bcrypt.gensalt())
+    try:
+        cur.execute(
+            "INSERT INTO lietotaji (lietotaj_vards, parole_hash, role) VALUES (%s, %s, %s)",
+            (lietotaj_vards, hashed.decode('utf-8'), role)
+        )
+        conn.commit()
+        return f"Lietotājs '{lietotaj_vards}' ar lomu '{role}' izveidots."
+    except psycopg2.errors.UniqueViolation:
+        conn.rollback()
+        return f"lietotaj_vards '{lietotaj_vards}' jau pastāv."
+    finally:
+        cur.close()
+        conn.close()
+
+
+def login_Lietotajs(lietotaj_vards, parole):
+    conn = psycopg2.connect(dsn)
+    cur = conn.cursor()
+    cur.execute("SELECT parole_hash, role FROM lietotaji WHERE lietotaj_vards = %s", (lietotaj_vards,))
+    result = cur.fetchone()
+    cur.close()
+    conn.close()
+
+    if result is None:
+        return "Lietotājs nav atrasts.", None
+
+    stored_hash, role = result[0].encode('utf-8'), result[1]
+
+    if bcrypt.checkpw(parole.encode('utf-8'), stored_hash):
+        return "Pieslēgšanās veiksmīga.", role
+    else:
+        return "Nepareiza parole.", None
 
 def test_connection():
     """Pārbauda pieslēgumu datubāzei
