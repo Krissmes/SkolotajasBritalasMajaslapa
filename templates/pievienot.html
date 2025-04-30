@@ -8,6 +8,19 @@
 
 {% block saturs%}
 
+<input type="url" id="saite" name="saite">
+<form method="post">
+    <select name="kategorijas">
+        {% for x in kategorijas %}
+            <option value = {{x}}> {{x}}</option>
+        {%endfor%}
+    </select>
+    <input type="submit", value="izvelies joku"> 
+</form>
+<input type="text" id="anotacija" name="anotacija">
+<input type="submit" id="pievienot" name="pievienot">
+
+
 <p>Lūdzu strādā pievienot</p>
-<input type="url" id="links" name="ievieto linku šeit">
+
 {% endblock %}
