@@ -6,36 +6,21 @@ import csv
 import time
 import sqlite3
 
-dsn = "dbname=mydb user=funnycat53 password=mypass host=localhost"
+dsn = "dbname=postgres user=postgres password=patriks2020 host=localhost"
 
-def lietotaju_tabulas_izveide():
-    conn = psycopg2.connect(dsn)
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS lietotaji (
-            id SERIAL PRIMARY KEY,
-            lietotaj_vards VARCHAR(100) UNIQUE NOT NULL,
-            parole_hash TEXT NOT NULL,
-            role VARCHAR(10) NOT NULL DEFAULT 'user'
-        )
-    """)
-    conn.commit()
-    cur.close()
-    conn.close()
 
-lietotaju_tabulas_izveide()
 
-def izveidot_lietotaju(lietotaj_vards, parole, role='user'):
+def izveidot_lietotaju(lietotaj_vards, parole, loma='user'):
     conn = psycopg2.connect(dsn)
     cur = conn.cursor()
     hashed = bcrypt.hashpw(parole.encode('utf-8'), bcrypt.gensalt())
     try:
         cur.execute(
-            "INSERT INTO lietotaji (lietotaj_vards, parole_hash, role) VALUES (%s, %s, %s)",
-            (lietotaj_vards, hashed.decode('utf-8'), role)
+            "INSERT INTO lietotaji (lietotaj_vards, parole_hash, loma) VALUES (%s, %s, %s)",
+            (lietotaj_vards, hashed.decode('utf-8'), loma)
         )
         conn.commit()
-        return f"Lietotājs '{lietotaj_vards}' ar lomu '{role}' izveidots."
+        return f"Lietotājs '{lietotaj_vards}' ar lomu '{loma}' izveidots."
     except psycopg2.errors.UniqueViolation:
         conn.rollback()
         return f"lietotaj_vards '{lietotaj_vards}' jau pastāv."
@@ -47,7 +32,7 @@ def izveidot_lietotaju(lietotaj_vards, parole, role='user'):
 def login_Lietotajs(lietotaj_vards, parole):
     conn = psycopg2.connect(dsn)
     cur = conn.cursor()
-    cur.execute("SELECT parole_hash, role FROM lietotaji WHERE lietotaj_vards = %s", (lietotaj_vards,))
+    cur.execute("SELECT parole_hash, loma FROM lietotaji WHERE lietotaj_vards = %s", (lietotaj_vards,))
     result = cur.fetchone()
     cur.close()
     conn.close()
@@ -55,10 +40,10 @@ def login_Lietotajs(lietotaj_vards, parole):
     if result is None:
         return "Lietotājs nav atrasts.", None
 
-    stored_hash, role = result[0].encode('utf-8'), result[1]
+    stored_hash, loma = result[0].encode('utf-8'), result[1]
 
     if bcrypt.checkpw(parole.encode('utf-8'), stored_hash):
-        return "Pieslēgšanās veiksmīga.", role
+        return "Pieslēgšanās veiksmīga.", loma
     else:
         return "Nepareiza parole.", None
 
@@ -105,13 +90,17 @@ def ierakstit2(tags,saite):
 def nolasit(parametri = 0):
     conn = psycopg2.connect(dsn)
     cur = conn.cursor()
-    if parametri==0: #Šeit nolasās pilnīgi visi dati
-        kverijs='''SELECT id, url, nosaukums, atsauksme, autors, tag_name, tagi.tag_id, seciba, kategorija FROM saites LEFT JOIN tagi_saites ON saites.id=tagi_saites.saite_id LEFT JOIN tagi ON tagi_saites.tag_id=tagi.tag_id ORDER BY id DESC, kategorija ASC, tagi.tag_id ASC '''
+    if parametri==0: 
+        kverijs="""SELECT id, url, nosaukums, atsauksme, autors, tag_name, tagi.tag_id, seciba, kategorija
+        FROM saites 
+        LEFT JOIN tagi_saites ON saites.id=tagi_saites.saite_id
+        LEFT JOIN tagi ON tagi_saites.tag_id=tagi.tag_id 
+        ORDER BY id DESC, kategorija ASC, tagi.tag_id ASC"""
         cur.execute(kverijs)
         r = [dict((cur.description[i][0], value) \
                for i, value in enumerate(row)) for row in cur.fetchall()]
     elif parametri == 1:
-        kverijs='''SELECT name FROM kategorijas '''
+        kverijs="""SELECT name FROM kategorijas """
         cur.execute(kverijs)
         r = [dict((cur.description[i][0], value) \
                for i, value in enumerate(row)) for row in cur.fetchall()]
@@ -120,7 +109,7 @@ def nolasit(parametri = 0):
         cur.execute(kverijs)
         r = [dict((cur.description[i][0], value) \
                for i, value in enumerate(row)) for row in cur.fetchall()]
-    else:           #Šeit būs atlasītie dati
+    else:          
         cur.execute(parametri)
         r = [dict((cur.description[i][0], value) \
                for i, value in enumerate(row)) for row in cur.fetchall()]
@@ -132,12 +121,14 @@ def tekstapstrade(teksts, ietvars, saraksts):
     if len(saraksts) == 0:
         jaunaiskverijsvidus = ""
     else:
-        jaunaiskverijsvidus = """WHERE EXISTS (SELECT 1 FROM tagi_saites WHERE (tagi_saites.tag_id = {} AND tagi_saites.saite_id=id)
-            """.format(saraksts[0])
+        jaunaiskverijsvidus = """
+        WHERE EXISTS (SELECT 1 FROM tagi_saites
+        WHERE (tagi_saites.tag_id = {} 
+        AND tagi_saites.saite_id=id)""".format(saraksts[0])
         for tags in saraksts[1:]:
-            jaunaiskverijsvidus +="""
-                AND EXISTS (SELECT 1 FROM tagi_saites WHERE tagi_saites.tag_id = {} AND tagi_saites.saite_id=id)
-                """.format(tags)
+            jaunaiskverijsvidus +="""AND EXISTS (SELECT 1 FROM tagi_saites 
+            WHERE tagi_saites.tag_id = {} 
+            AND tagi_saites.saite_id=id)""".format(tags)
         jaunaiskverijsvidus += " ) "
 
     if teksts == "":
@@ -146,25 +137,22 @@ def tekstapstrade(teksts, ietvars, saraksts):
         else:
             jaunaiskverijssakums = """
             SELECT id, url, nosaukums, atsauksme, autors, tag_name, tagi.seciba, tagi.tag_id, kategorija 
-            FROM 
-                (SELECT * FROM saites """
-            jaunaiskverijsbeigas = """
-                ) AS a 
-                LEFT JOIN tagi_saites ON a.id=tagi_saites.saite_id LEFT JOIN tagi ON tagi_saites.tag_id = tagi.tag_id
-            ORDER BY id DESC, kategorija ASC, tagi.seciba ASC
-            """
+            FROM (SELECT * FROM saites """ 
+            jaunaiskverijsbeigas = """) AS a 
+            LEFT JOIN tagi_saites ON a.id=tagi_saites.saite_id 
+            LEFT JOIN tagi ON tagi_saites.tag_id = tagi.tag_id
+            ORDER BY id DESC, kategorija ASC, tagi.seciba ASC"""
 
             jaunaiskverijs = jaunaiskverijssakums + jaunaiskverijsvidus + jaunaiskverijsbeigas
             print(jaunaiskverijs)
     else:
         jaunaiskverijssakums = """
-        SELECT * FROM (
-            SELECT id, url, nosaukums, atsauksme, autors, tag_name, tagi.tag_id, tagi.seciba, kategorija 
-            FROM 
-                (SELECT * FROM saites """
-        jaunaiskverijsbeigas = """
-                ) AS a
-                LEFT JOIN tagi_saites ON a.id=tagi_saites.saite_id LEFT JOIN tagi ON tagi_saites.tag_id = tagi.tag_id
+        SELECT * FROM 
+        (SELECT id, url, nosaukums, atsauksme, autors, tag_name, tagi.tag_id, tagi.seciba, kategorija 
+        FROM (SELECT * FROM saites """
+        jaunaiskverijsbeigas = """) AS a
+            LEFT JOIN tagi_saites ON a.id=tagi_saites.saite_id 
+            LEFT JOIN tagi ON tagi_saites.tag_id = tagi.tag_id
             ORDER BY id DESC, kategorija ASC, tagi.seciba ASC) AS tabula WHERE
             """
         if ietvars == '1':

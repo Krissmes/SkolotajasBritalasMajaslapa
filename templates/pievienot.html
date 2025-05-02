@@ -2,29 +2,70 @@
 
 {% block virsraksts %}
 
-<h1>Pievienot lapa</h1>
+<h1>Pievieno saiti</h1>
 
 {% endblock %}
 
 {% block saturs %}
-<h1>Pievienot lapa</h1>
-
-<form method="post">
-    <input id="saitesinputs" type="url" name="saite" placeholder="https://piemers.lv" required>
-    
-    <select name="kategorijas">
-        {% for x in kategorijas %}
-            <option value="{{ x }}">{{ x }}</option>
-        {% endfor %}
-    </select>
-    
-    <input type="text" id="anotacija" name="anotacija" required>
-    <input type="text" name="Autors" placeholder="Pievienotāja Vārds, Uzvārds" required>
-    
-    <input type="submit" value="Izvēlies joku">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+<script type="text/javascript" src="{{url_for('static',filename='test.js')}}"></script>
+<script type="text/javascript" charset="UTF-8">
+</script>
+</head>
+<body class="bg-light" onload="ieladejotPievienot({saraksts})">
+<div class="container-fluid">
+<form method="POST">
+  <div class="row">
+  <h3>Pievienot lapu: </h3>
+  </div>
+  <div class="row">
+  <div class="col col-2">
+    <div class="row">
+      <p>Nosaukums: </p>
+      <input type="text" name="nosaukums" placeholder="Nosaukums" required>
+    </div>
+    <div class="row">
+      <p>Saite: </p>
+      <input id="saitesinputs" type="url" name="saite" placeholder="https://piemers.lv" oninput="dropdovnis(this.value)" required>
+    </div>
+    <div class="row">
+      <p>Pievienotājs: </p>
+        <input type="text" name="Autors" placeholder="Pievienotāja Vārds, Uzvārds" required>
+    </div>
+  </div>
+  <div class="col col-4">
+    <textarea style="width: 100%;" name="anotacija" rows="10" cols="50" placeholder="Anotācija - 1-3 teikumos uzraksti skolotājam visnoderīgāko informāciju par resursu!"></textarea>
+  </div>
+  <div id="infovieta" class="col col-6">
+  </div>
+  </div>
+</div>
+  <table class="table-sm table-bordered">
+    <tr>
+      {%for kategorija in kategs%}
+      <th>
+          {{kategorija.name}}<img id="img{{loop.index}}" data-toggle="popover" data-trigger="focus" data-placement="bottom" title="Info par kategoriju" src="{{url_for('static', filename = 'info_logo.png')}}" style="cursor: pointer;">
+      </th>
+      {%endfor%}
+    </tr>
+    <tr>
+      <td>
+        {%set ns = namespace(num=1) %}
+        {%for rinda in teksts%}
+        {%if rinda.kategorija > ns.num%}
+          {%set ns.num = rinda.kategorija%}
+          </td><td>
+        {%endif%}
+        <input type="checkbox" name="kategors[]" value="{{rinda.tag_id}}">
+        {{rinda.tag_name}} <br>
+        {%endfor%}
+      </td>
+    </tr>
+  </table>
+<div class="container">
+  <input type="submit" class="button btn-success" onclick="return confirm('Vai pievienot?')" >
 </form>
-
-<p>Lūdzu strādā pievienot</p>
+</div>
 {% endblock %}
 
 

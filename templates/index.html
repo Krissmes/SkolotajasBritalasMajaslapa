@@ -1,19 +1,126 @@
 <!DOCTYPE html>
     <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <script type="text/javascript" src="{{url_for('static',filename='test.js')}}"></script>    
+        <title>
+            Meklētājs
+          </title>
         <div>
-{% block virsraksts %}
+            {% block virsraksts %}
             <h1>Viss saturs</h1>
-{% endblock %}
-            <a href="/">Saturs</a>
+            {% endblock %}
+            <a href="/">Meklētājs</a>
             <a href="/login">Login</a>
             <a href="/pievienot">Pievieno saiti</a>
         </div>
 
     </head>
-    <body>
-{% block saturs %}
-        <div><p>saturs</p>
-        </div>
-{% endblock %}
+    <body class="bg-light" onload="ieladejotPievienot('')">
+    {% block saturs %}
+    <div id="meklētājs">
+        <form method="POST">
+            <h3>Meklētājs:   </h3>
+            <div class="row">
+            <div class="col col-6">
+            <input type="text" name="teksts" placeholder="Teksta daļa, ko meklēt">
+            <input type="radio" name="radiovariants" value="1" checked>
+            <label for="1">Nosaukums</label>
+            <input type="radio" name="radiovariants" value="2">
+            <label for="2">Anotācija</label>
+            <input type="radio" name="radiovariants" value="3">
+            <label for="3">Pievienotāja vārds</label>
+            </div>
+            <div id="infovieta" class="col col-6">
+            </div>
+            </div>          
+            <br>
+            <h3>Izvēlies atslēgvērdus meklēšanai:</h3>
+            <table class="table-sm table-bordered">
+              <tr>
+                {%for kategorija in kategs%}
+                <th>
+                    {{kategorija.name}}<img id="img{{loop.index}}" src="{{url_for('static', filename = 'info_logo.png')}}" style="cursor: pointer;" >
+                </th>
+                {%endfor%}
+              </tr>
+              <tr>
+                <td>
+                  {%set ns = namespace(num=1) %}
+                  {%for rinda in teksts%}
+                  {%if rinda.kategorija > ns.num%}
+                    {%set ns.num = rinda.kategorija%}
+                    </td><td>
+                  {%endif%}
+                  <input type="checkbox" name="kategors[]" value="{{rinda.tag_id}}">
+                  {{rinda.tag_name}} <br>
+                  {%endfor%}
+                </td>
+              </tr>
+            </table>          
+            <input type="submit" name="meklet" value="Meklēt">
+        </form>
+    </div>
+    <p>
+    </p>
+    <div id="rezultati">
+        <table class="table-sm table-bordered table-striped">
+          <tr class="sticky-top">
+            <th>Nr.p.k.</th>
+            <th>Nosaukums</th>
+            <th>Saite</th>
+            <th>Anotācija</th>
+            <th>Pievienoja</th>
+            {%set ns = namespace(esosais=0,rinda=1,kategorija=0)%}
+            {%for kategorija in kategs%}
+            {%for vards in kategorija%}
+            <th>
+                {{kategorija[vards]}}
+            </th>
+            {%endfor%}
+            {%endfor%}
+    {%for linija in linijas %}
+    {%if ns.esosais != linija.id %}
+          </tr>
+          <tr>
+            {%set ns.esosais = linija.id %}
+            {%set ns.kategorija = linija.kategorija%}
+            <td>{{ns.rinda}}</td>
+            {%set ns.rinda = ns.rinda + 1%}
+            <td>{{linija.nosaukums}}</td>
+            <td><div style="word-break: break-word; width:15em"><a href="{{linija.url}}" target="_blank">{{linija.url}}</a></div></td>
+            <td>{{linija.atsauksme}}</td>
+            <td>{{linija.autors}}</td>
+            <td> {%for n in range(7)%}
+              {%if n+1 != linija.kategorija%}
+                </td><td>
+              {%else%}
+                  {{linija.tag_name}}
+              {%endif%}
+              {%endfor%}
+    {%else%}
+            {%if ns.kategorija==linija.kategorija%}
+              <br>
+              {{linija.tag_name}}
+            {%else%}
+              </td><td>
+                {%for n in range(ns.kategorija,linija.kategorija)%}
+                {%if n+1 != linija.kategorija%}
+              </td><td>
+                {%else%}
+                  {%set ns.kategorija = linija.kategorija %}
+                  {{linija.tag_name}}
+                {%endif%}
+                {%endfor%}
+            {%endif%}
+    {%endif%}
+          {% endfor %}
+          </td>
+          </tr>
+        </table>
+      </div>  
+
+    {% endblock %}
     </body>
 </html>
