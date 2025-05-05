@@ -7,7 +7,24 @@
 {% endblock %}
 
 {% block saturs%}
-
+<div>
+    <form method ="POST" action="/login">
+        <input type="text", name="username", placeholder="lietotājvārds" required>
+        <input type="password" name="password", placeholder="parole" required>
+        <button type="submit" name="action" value="login">Ienākt</button>
+    <button type="submit" name="action" value="register">Reģistrējies</button>
+    </form>
+</div>
 <p>Lūdzu strādā</p>
+{% with messages = get_flashed_messages() %}                <!-- lai paradi atbildi, vai viss ir veiksmigi vai ne -->
+  {% if messages %}
+    <ul class="flashes">
+      {% for message in messages %}
+        <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+                                      <!-- . -->
 
 {% endblock %}

@@ -1,7 +1,10 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, session, flash
 import dati
 
+
 app = Flask(__name__)
+
+app.secret_key = 'random_bet_strong_secret_key'     # nepieciesams lai paraditu vai viss notiek veiksmigi
 
 @app.route('/', methods=['POST','GET'])
 def meklet():
@@ -27,7 +30,29 @@ def meklet():
 
 @app.route('/login', methods=['POST','GET'])
 def login_lapa():
+
+        # nepieciesams lai paraditu vai viss notiek veiksmigi
+       
+    if request.method == 'POST':
+        try:
+            action = request.form["action"]
+            lietotaj_vards = request.form["username"]
+            parole = request.form["password"]
+
+            if action == 'login':
+                rezultats, loma = dati.login_Lietotajs(lietotaj_vards, parole)
+                flash(rezultats)
+                if loma:
+                    return redirect('/')
+            elif action == 'register':
+                rezultats = dati.izveidot_lietotaju(lietotaj_vards, parole)
+                flash(rezultats)
+        except Exception as e:
+            return f"Kļūda: {str(e)}", 400  # Will show the error on screen
     return render_template('login.html')
+#beidzas nepieciesamais prieks parbaudes
+
+
 
 @app.route('/pievienot', methods=['POST','GET'])
 def pievienot_lapa():
