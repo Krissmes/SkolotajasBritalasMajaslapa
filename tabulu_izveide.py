@@ -1,18 +1,22 @@
 import psycopg2
+#patrika parole
+#dsn = "dbname=postgres user=postgres password=patriks2020 host=localhost"  
 
-dsn = "dbname=postgres user=postgres password=patriks2020 host=localhost"
+#krisa parole
+dsn = "dbname=skolotajumajaslapaDB user=postgres password=Kriss2006 host=localhost"
 
 def create_all_tables():
     conn = psycopg2.connect(dsn)
     cur = conn.cursor()
 
     # Tabula: lietotaji
+    
     cur.execute("""
         CREATE TABLE IF NOT EXISTS lietotaji (
             id SERIAL PRIMARY KEY,
             lietotaj_vards VARCHAR(100) UNIQUE NOT NULL,
             parole_hash TEXT NOT NULL,
-            role VARCHAR(10) NOT NULL DEFAULT 'user'
+            loma VARCHAR(10) NOT NULL DEFAULT 'user'
         );
     """)
 

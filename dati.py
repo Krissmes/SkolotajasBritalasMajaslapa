@@ -6,9 +6,10 @@ import csv
 import time
 import sqlite3
 
-dsn = "dbname=postgres user=postgres password=patriks2020 host=localhost"
-
-
+#patrika dsn
+#dsn = "dbname=postgres user=postgres password=patriks2020 host=localhost"
+#krisa dsn
+dsn = "dbname=skolotajumajaslapaDB user=postgres password=Kriss2006 host=localhost"
 
 def izveidot_lietotaju(lietotaj_vards, parole, loma='user'):
     conn = psycopg2.connect(dsn)
