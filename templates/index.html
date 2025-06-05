@@ -1,126 +1,168 @@
 <!DOCTYPE html>
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-        <script type="text/javascript" src="{{url_for('static',filename='test.js')}}"></script>    
-        <title>
-            Meklētājs
-          </title>
-        <div>
-            {% block virsraksts %}
-            <h1>Viss saturs</h1>
-            {% endblock %}
-            <a href="/">Meklētājs</a>
-            <a href="/login">Login</a>
-            <a href="/pievienot">Pievieno saiti</a>
-        </div>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meklētājs</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+  <script type="text/javascript" src="{{ url_for('static', filename='test.js') }}"></script>
+</head>
 
-    </head>
-    <body class="bg-light" onload="ieladejotPievienot('')">
-    {% block saturs %}
-    <div id="meklētājs">
-        <form method="POST">
-            <h3>Meklētājs:   </h3>
-            <div class="row">
-            <div class="col col-6">
-            <input type="text" name="teksts" placeholder="Teksta daļa, ko meklēt">
-            <input type="radio" name="radiovariants" value="1" checked>
-            <label for="1">Nosaukums</label>
-            <input type="radio" name="radiovariants" value="2">
-            <label for="2">Anotācija</label>
-            <input type="radio" name="radiovariants" value="3">
-            <label for="3">Pievienotāja vārds</label>
-            </div>
-            <div id="infovieta" class="col col-6">
-            </div>
-            </div>          
-            <br>
-            <h3>Izvēlies atslēgvērdus meklēšanai:</h3>
-            <table class="table-sm table-bordered">
-              <tr>
-                {%for kategorija in kategs%}
-                <th>
-                    {{kategorija.name}}<img id="img{{loop.index}}" src="{{url_for('static', filename = 'info_logo.png')}}" style="cursor: pointer;" >
-                </th>
-                {%endfor%}
-              </tr>
-              <tr>
-                <td>
-                  {%set ns = namespace(num=1) %}
-                  {%for rinda in teksts%}
-                  {%if rinda.kategorija > ns.num%}
-                    {%set ns.num = rinda.kategorija%}
-                    </td><td>
-                  {%endif%}
-                  <input type="checkbox" name="kategors[]" value="{{rinda.tag_id}}">
-                  {{rinda.tag_name}} <br>
-                  {%endfor%}
-                </td>
-              </tr>
-            </table>          
-            <input type="submit" name="meklet" value="Meklēt">
-        </form>
+<body class="bg-light">
+
+  <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
+    <div class="container">
+      <div class="navbar-nav">
+        <a class="nav-item nav-link" href="/">Meklētājs</a>
+        <a class="nav-item nav-link" href="/login">Pieslēgties</a>
+        <a class="nav-item nav-link" href="/pievienot">Pievieno saiti</a>
+      </div>
+      <div class="ml-auto text-muted">
+        {% if session.get('lietotaj_vards') %}
+          👤 Pieslēdzies kā: <strong>{{ session['lietotaj_vards'] }}</strong> ({{ session['loma'] }})
+        {% else %}
+          Neviens lietotājs nav pieslēdzies
+        {% endif %}
+      </div>
     </div>
-    <p>
-    </p>
-    <div id="rezultati">
-        <table class="table-sm table-bordered table-striped">
-          <tr class="sticky-top">
-            <th>Nr.p.k.</th>
-            <th>Nosaukums</th>
-            <th>Saite</th>
-            <th>Anotācija</th>
-            <th>Pievienoja</th>
-            {%set ns = namespace(esosais=0,rinda=1,kategorija=0)%}
-            {%for kategorija in kategs%}
-            {%for vards in kategorija%}
-            <th>
-                {{kategorija[vards]}}
-            </th>
-            {%endfor%}
-            {%endfor%}
-    {%for linija in linijas %}
-    {%if ns.esosais != linija.id %}
-          </tr>
-          <tr>
-            {%set ns.esosais = linija.id %}
-            {%set ns.kategorija = linija.kategorija%}
-            <td>{{ns.rinda}}</td>
-            {%set ns.rinda = ns.rinda + 1%}
-            <td>{{linija.nosaukums}}</td>
-            <td><div style="word-break: break-word; width:15em"><a href="{{linija.url}}" target="_blank">{{linija.url}}</a></div></td>
-            <td>{{linija.atsauksme}}</td>
-            <td>{{linija.autors}}</td>
-            <td> {%for n in range(7)%}
-              {%if n+1 != linija.kategorija%}
-                </td><td>
-              {%else%}
-                  {{linija.tag_name}}
-              {%endif%}
-              {%endfor%}
-    {%else%}
-            {%if ns.kategorija==linija.kategorija%}
-              <br>
-              {{linija.tag_name}}
-            {%else%}
-              </td><td>
-                {%for n in range(ns.kategorija,linija.kategorija)%}
-                {%if n+1 != linija.kategorija%}
-              </td><td>
-                {%else%}
-                  {%set ns.kategorija = linija.kategorija %}
-                  {{linija.tag_name}}
-                {%endif%}
-                {%endfor%}
-            {%endif%}
-    {%endif%}
-          {% endfor %}
-          </td>
-          </tr>
-        </table>
-      </div>  
+  </nav>
 
+  <div class="container mt-3">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alert alert-warning" role="alert">
+          {% for message in messages %}
+            <p class="mb-0">{{ message }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <div class="container mt-4">
+    {% block virsraksts %}
+      <h2 class="text-center">Meklētājs</h2>
     {% endblock %}
-    </body>
+  </div>
+
+  <div class="container mt-4">
+    {% block saturs %}
+      <div id="meklētājs" class="mb-4">
+        <form method="POST">
+          <h4>Meklēšanas iespējas</h4>
+          <div class="form-row">
+            <div class="col-md-6 mb-3">
+              <input type="text" class="form-control" name="teksts" placeholder="Teksta daļa, ko meklēt">
+              <div class="form-check form-check-inline mt-2">
+                <input class="form-check-input" type="radio" name="radiovariants" value="1" checked>
+                <label class="form-check-label">Nosaukums</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="radiovariants" value="2">
+                <label class="form-check-label">Anotācija</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="radiovariants" value="3">
+                <label class="form-check-label">Pievienotāja vārds</label>
+              </div>
+            </div>
+            <div id="infovieta" class="col-md-6"></div>
+          </div>
+
+          <div class="form-group mt-3">
+            <div class="d-flex flex-wrap">
+              {% set ns = namespace(num=1) %}
+              {% for rinda in teksts %}
+                {% if rinda.kategorija > ns.num %}
+                  {% set ns.num = rinda.kategorija %}
+                {% endif %}
+                <div class="form-check mr-3 mb-2">
+                  <input class="form-check-input" type="checkbox" name="kategors[]" value="{{ rinda.tag_id }}" id="tag{{ rinda.tag_id }}">
+                  <label class="form-check-label" for="tag{{ rinda.tag_id }}">{{ rinda.tag_name }}</label>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <button type="submit" name="meklet" class="btn btn-primary">Meklēt</button>
+        </form>
+      </div>
+
+      <div id="rezultati" class="mt-5">
+        <h4>Rezultāti</h4>
+        <table class="table table-bordered table-striped table-sm">
+          <thead class="thead-light sticky-top">
+            <tr>
+              <th>Nr.p.k.</th>
+              <th>Nosaukums</th>
+              <th>Saite</th>
+              <th>Anotācija</th>
+              <th>Pievienoja</th>
+              {% for kategorija in kategs %}
+                {% for vards in kategorija %}
+                  <th>{{ kategorija[vards] }}</th>
+                {% endfor %}
+              {% endfor %}
+              {% if session.get('loma') == 'admin' %}
+                <th>Darbības</th>
+              {% endif %}
+            </tr>
+          </thead>          
+          <tbody>
+            {% set ns = namespace(esosais=0, rinda=1, kategorija=0) %}
+            {% for linija in linijas %}
+              {% if ns.esosais != linija.id %}
+                <tr>
+                  {% set ns.esosais = linija.id %}
+                  {% set ns.kategorija = linija.kategorija %}
+                  <td>{{ ns.rinda }}</td>
+                  {% set ns.rinda = ns.rinda + 1 %}
+                  <td>{{ linija.nosaukums }}</td>
+                  <td style="word-break: break-word; width:15em">
+                    <a href="{{ linija.url }}" target="_blank">{{ linija.url }}</a>
+                  </td>
+                  <td>{{ linija.atsauksme }}</td>
+                  <td>{{ linija.autors }}</td>
+                  <td>
+                    {% for n in range(7) %}
+                      {% if n + 1 != linija.kategorija %}
+                        </td><td>
+                      {% else %}
+                        {{ linija.tag_name }}
+                      {% endif %}
+                    {% endfor %}
+                  </td>
+                  {% if session.get('loma') == 'admin' %}
+                  <td>
+                    <form method="POST" onsubmit="return confirm('Vai tiešām dzēst šo saiti?');">
+                      <input type="hidden" name="dzestko" value="{{ linija.id }}">
+                      <button type="submit" name="dzest" class="btn btn-danger btn-sm">Dzēst</button>
+                    </form>
+                  </td>
+                {% endif %}
+                </tr>
+              {% else %}
+                {% if ns.kategorija == linija.kategorija %}
+                  <br>{{ linija.tag_name }}
+                {% else %}
+                  </td><td>
+                  {% for n in range(ns.kategorija, linija.kategorija) %}
+                    {% if n + 1 != linija.kategorija %}
+                      </td><td>
+                    {% else %}
+                      {% set ns.kategorija = linija.kategorija %}
+                      {{ linija.tag_name }}
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endblock %}
+  </div>
+
+</body>
 </html>

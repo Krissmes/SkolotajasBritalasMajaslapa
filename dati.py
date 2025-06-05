@@ -7,9 +7,9 @@ import time
 import sqlite3
 
 #patrika dsn
-#dsn = "dbname=postgres user=postgres password=patriks2020 host=localhost"
+dsn = "dbname=postgres user=postgres password=patriks2020 host=localhost"
 #krisa dsn
-dsn = "dbname=skolotajumajaslapaDB user=postgres password=Kriss2006 host=localhost"
+# dsn = "dbname=skolotajumajaslapaDB user=postgres password=Kriss2006 host=localhost"
 
 def izveidot_lietotaju(lietotaj_vards, parole, loma='user'):
     conn = psycopg2.connect(dsn)
@@ -47,6 +47,20 @@ def login_Lietotajs(lietotaj_vards, parole):
         return "Pieslēgšanās veiksmīga.", loma
     else:
         return "Nepareiza parole.", None
+    
+def mainit_lomu(lietotaj_vards, jaunā_loma):
+    conn = psycopg2.connect(dsn)
+    cur = conn.cursor()
+    try:
+        cur.execute("UPDATE lietotaji SET loma = %s WHERE lietotaj_vards = %s", (jaunā_loma, lietotaj_vards))
+        conn.commit()
+        return f"Lietotāja '{lietotaj_vards}' loma nomainīta uz '{jaunā_loma}'."
+    except Exception as e:
+        conn.rollback()
+        return f"Kļūda mainot lomu: {str(e)}"
+    finally:
+        cur.close()
+        conn.close()
 
 def test_connection():
     """Pārbauda pieslēgumu datubāzei
@@ -157,11 +171,11 @@ def tekstapstrade(teksts, ietvars, saraksts):
             ORDER BY id DESC, kategorija ASC, tagi.seciba ASC) AS tabula WHERE
             """
         if ietvars == '1':
-            jaunaiskverijsbeigas += """tabula.nosaukums LIKE '%{}%' """.format(teksts)
+            jaunaiskverijsbeigas += """tabula.nosaukums ILIKE '%{}%' """.format(teksts)
         elif ietvars == '2':
-            jaunaiskverijsbeigas += """tabula.atsauksme LIKE '%{}%' """.format(teksts)
+            jaunaiskverijsbeigas += """tabula.atsauksme ILIKE '%{}%' """.format(teksts)
         else:
-            jaunaiskverijsbeigas += """tabula.autors LIKE '%{}%' """.format(teksts)
+            jaunaiskverijsbeigas += """tabula.autors ILIKE '%{}%' """.format(teksts)
         jaunaiskverijs = jaunaiskverijssakums + jaunaiskverijsvidus + jaunaiskverijsbeigas
     return jaunaiskverijs
 

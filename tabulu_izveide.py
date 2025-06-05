@@ -1,16 +1,26 @@
 import psycopg2
+
 #patrika parole
-#dsn = "dbname=postgres user=postgres password=patriks2020 host=localhost"  
+dsn = "dbname=postgres user=postgres password=patriks2020 host=localhost"  
 
 #krisa parole
-dsn = "dbname=skolotajumajaslapaDB user=postgres password=Kriss2006 host=localhost"
+# dsn = "dbname=skolotajumajaslapaDB user=postgres password=Kriss2006 host=localhost"
+
+def drop_all_tables(cur):
+    # Drop in order due to foreign key constraints
+    cur.execute("DROP TABLE IF EXISTS tagi_saites CASCADE;")
+    cur.execute("DROP TABLE IF EXISTS tagi CASCADE;")
+    cur.execute("DROP TABLE IF EXISTS saites CASCADE;")
+    cur.execute("DROP TABLE IF EXISTS kategorijas CASCADE;")
+    cur.execute("DROP TABLE IF EXISTS lietotaji CASCADE;")
 
 def create_all_tables():
     conn = psycopg2.connect(dsn)
     cur = conn.cursor()
 
-    # Tabula: lietotaji
-    
+    drop_all_tables(cur)
+
+    # Re-create tables
     cur.execute("""
         CREATE TABLE IF NOT EXISTS lietotaji (
             id SERIAL PRIMARY KEY,
@@ -20,7 +30,6 @@ def create_all_tables():
         );
     """)
 
-    # Tabula: saites
     cur.execute("""
         CREATE TABLE IF NOT EXISTS saites (
             id SERIAL PRIMARY KEY,
@@ -31,7 +40,6 @@ def create_all_tables():
         );
     """)
 
-    # Tabula: tagi
     cur.execute("""
         CREATE TABLE IF NOT EXISTS tagi (
             tag_id SERIAL PRIMARY KEY,
@@ -41,7 +49,6 @@ def create_all_tables():
         );
     """)
 
-    # Tabula: tagi_saites
     cur.execute("""
         CREATE TABLE IF NOT EXISTS tagi_saites (
             saraksta_id SERIAL PRIMARY KEY,
@@ -50,7 +57,6 @@ def create_all_tables():
         );
     """)
 
-    # Tabula: kategorijas
     cur.execute("""
         CREATE TABLE IF NOT EXISTS kategorijas (
             id SERIAL PRIMARY KEY,
@@ -58,6 +64,7 @@ def create_all_tables():
         );
     """)
 
+    # Optional indexes
     cur.execute("CREATE INDEX IF NOT EXISTS idx_saites_url ON saites(url);")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_tagi_saites_tag_id ON tagi_saites(tag_id);")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_tagi_saites_saite_id ON tagi_saites(saite_id);")
@@ -65,7 +72,7 @@ def create_all_tables():
     conn.commit()
     cur.close()
     conn.close()
-    print("All tables created successfully.")
+    print("All tables dropped and recreated successfully.")
 
 if __name__ == "__main__":
     create_all_tables()

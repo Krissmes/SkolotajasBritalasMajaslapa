@@ -1,30 +1,45 @@
 {% extends "index.html" %}
 
 {% block virsraksts %}
-
-<h1>Login</h1>
-
+<h1>Pieslēgšanās / Reģistrācija</h1>
 {% endblock %}
 
-{% block saturs%}
-<div>
-    <form method ="POST" action="/login">
-        <input type="text", name="username", placeholder="lietotājvārds" required>
-        <input type="password" name="password", placeholder="parole" required>
-        <button type="submit" name="action" value="login">Ienākt</button>
-    <button type="submit" name="action" value="register">Reģistrējies</button>
-    </form>
-</div>
-<p>Lūdzu strādā</p>
-{% with messages = get_flashed_messages() %}                <!-- lai paradi atbildi, vai viss ir veiksmigi vai ne -->
-  {% if messages %}
-    <ul class="flashes">
-      {% for message in messages %}
-        <li>{{ message }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}
-                                      <!-- . -->
+{% block saturs %}
+<div class="container d-flex justify-content-center">
+  <div class="card shadow-sm p-4 bg-white" style="max-width: 400px; width: 100%;">
+    {% if session.get('lietotaj_vards') %}
+      <p class="mb-3 text-success text-center">
+        Jūs jau esat pieslēdzies kā <strong>{{ session['lietotaj_vards'] }}</strong> ({{ session['loma'] }})
+      </p>
+      <div class="text-center">
+        <a href="/logout" class="btn btn-danger">Atteikties</a>
+      </div>
+    {% else %}
+      <form method="POST" action="/login">
+        <div class="form-group">
+          <label for="username">Lietotājvārds</label>
+          <input type="text" class="form-control" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Parole</label>
+          <input type="password" class="form-control" id="password" name="password" required>
+        </div>
+        <div class="d-flex justify-content-between mt-3">
+          <button type="submit" name="action" value="login" class="btn btn-primary">Pieslēgties</button>
+          <button type="submit" name="action" value="register" class="btn btn-success">Reģistrēties</button>
+        </div>
+      </form>
+    {% endif %}
 
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alert alert-info mt-3" role="alert">
+          {% for message in messages %}
+            <p class="mb-0">{{ message }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+  </div>
+</div>
 {% endblock %}
